@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SatPay Twitter Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Instrument+Serif&family=Outfit:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ========== VARIABLES ========== */
+:root {
+  --pure-white:#FFFFFF; --soft-white:#FFF9F3; --warm-beige:#E7DFD6;
+  --warm-grey:#504E4C; --deep-grey:#15191A; --dark-grey:#101414;
+  --near-black:#0C0F0F; --pure-black:#000000;
+  --soft-cream:#FFF0E0; --peach:#D4973F; --peach-light:#F2C192; --clay:#B8722A;
+  --mist-grey:#7A7D78; --sage-grey:#8A8D85; --deep-forest:#2C3231;
+  --sky-blue:#4A9AC4; --mint-green:#2E8F5F; --gold-yellow:#C4980A; --coral-red:#D4553E;
+  --pillar-product:#D4973F; --pillar-philosophy:#4A9AC4; --pillar-education:#2E8F5F;
+  --pillar-community:#C4980A; --pillar-social:#7A7D78; --pillar-hype:#D4553E;
+  --page-bg:#F9F8F6; --text-primary:#1A1D1E; --text-secondary:#504E4C; --text-muted:#7A7D78;
+  --glass-bg:rgba(255,255,255,0.65); --glass-border:rgba(0,0,0,0.07);
+  --nav-h:60px; --radius:14px; --radius-sm:8px;
+  --tr:0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ========== RESET & GLOBAL ========== */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--page-bg);color:var(--text-primary);line-height:1.6;overflow-x:hidden;font-weight:400;}
+h1{font-family:'Funnel Display','Outfit',sans-serif;font-weight:700;}
+h2,h3,h4{font-family:'Funnel Display','Outfit',sans-serif;font-weight:600;}
+a{color:var(--peach);text-decoration:none;}
+::selection{background:rgba(212,151,63,0.2);color:var(--text-primary);}
+
+/* Noise overlay */
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.12;mix-blend-mode:multiply;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--page-bg);}
+::-webkit-scrollbar-thumb{background:rgba(212,151,63,0.3);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(212,151,63,0.5);}
+
+/* ========== KEYFRAMES ========== */
+@keyframes heroIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,-40px) scale(1.1)}66%{transform:translate(-30px,30px) scale(0.95)}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-50px,30px) scale(0.9)}66%{transform:translate(40px,-50px) scale(1.1)}}
+@keyframes float3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,40px) scale(1.05)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,220,143,0.5)}50%{box-shadow:0 0 0 5px rgba(255,220,143,0)}}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ========== NAV ========== */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:rgba(249,248,246,0.82);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:100;}
+.nav-brand{font-family:'Funnel Display',sans-serif;font-size:15px;color:var(--peach);font-weight:600;letter-spacing:0.5px;}
+.nav-links{display:flex;gap:2px;align-items:center;}
+.nav-links a{font-size:12px;font-weight:500;padding:7px 14px;border-radius:8px;color:var(--text-muted);transition:var(--tr);white-space:nowrap;position:relative;}
+.nav-links a:hover{color:var(--text-primary);background:rgba(0,0,0,0.03);}
+.nav-links a.active{color:var(--peach);background:rgba(212,151,63,0.08);}
+.nav-btn{font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:transparent;color:var(--text-muted);cursor:pointer;transition:var(--tr);letter-spacing:0.3px;text-transform:uppercase;}
+.nav-btn:hover{background:rgba(212,151,63,0.08);color:var(--text-primary);border-color:rgba(212,151,63,0.3);}
+
+/* ========== HERO ========== */
+.hero{position:relative;text-align:center;padding:100px 32px 0;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,rgba(212,151,63,0.06) 0%,transparent 65%);}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:0.15;will-change:transform;}
+.hero-orb-1{width:400px;height:400px;background:radial-gradient(circle,var(--peach-light),transparent 70%);top:-100px;left:10%;animation:float1 25s infinite ease-in-out;}
+.hero-orb-2{width:300px;height:300px;background:radial-gradient(circle,var(--sky-blue),transparent 70%);top:0;right:15%;animation:float2 20s infinite ease-in-out;}
+.hero-orb-3{width:250px;height:250px;background:radial-gradient(circle,var(--gold-yellow),transparent 70%);bottom:-50px;left:40%;animation:float3 22s infinite ease-in-out;}
+.hero-content{position:relative;z-index:2;}
+.hero h1{font-size:52px;font-weight:700;letter-spacing:-0.5px;margin-bottom:10px;animation:heroIn 0.9s ease-out 0.1s both;line-height:1.15;color:var(--text-primary);}
+.hero h1 span{background:linear-gradient(135deg,var(--peach),var(--clay));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero .subtitle{color:var(--text-muted);font-size:14px;font-weight:400;letter-spacing:0.5px;margin-bottom:24px;animation:heroIn 0.9s ease-out 0.3s both;}
+.stats-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;animation:heroIn 0.9s ease-out 0.5s both;}
+.stat-card{background:var(--glass-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:20px 28px;min-width:130px;transition:var(--tr);position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03),0 4px 16px rgba(0,0,0,0.04);}
+.stat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,151,63,0.04) 0%,transparent 50%);pointer-events:none;}
+.stat-card:hover{border-color:rgba(212,151,63,0.2);transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 12px 40px rgba(0,0,0,0.08);}
+.stat{text-align:center;}
+.stat .num{font-family:'Funnel Display',sans-serif;font-size:36px;font-weight:700;color:var(--peach);line-height:1.1;}
+.stat .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:500;margin-top:4px;}
+
+/* ========== LAYOUT ========== */
+main{padding-top:var(--nav-h);}
+.section{padding:12px 36px;max-width:1320px;margin:0 auto;}
+.section-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.06);margin-bottom:20px;user-select:none;position:relative;}
+.section-header::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:2px;background:linear-gradient(90deg,var(--peach),transparent);transition:width 0.5s cubic-bezier(0.4,0,0.2,1);}
+.section-header:hover::after{width:140px;}
+.section-header h2{font-size:26px;color:var(--text-primary);letter-spacing:-0.3px;}
+.section-header .toggle-icon{font-size:18px;color:var(--text-muted);transition:transform var(--tr),color var(--tr);}
+.section-header:hover .toggle-icon{color:var(--peach);}
+.section-header.collapsed .toggle-icon{transform:rotate(-90deg);}
+.section-body{overflow:hidden;transition:max-height 0.5s ease,opacity 0.3s ease;opacity:1;}
+.section-body.collapsed{max-height:0!important;opacity:0;margin:0;padding:0;}
+.section-count{font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:var(--text-muted);background:rgba(0,0,0,0.04);padding:4px 12px;border-radius:20px;margin-left:14px;letter-spacing:0.3px;}
+
+/* Section header card styling — always a card */
+.section-header{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border)!important;border-radius:var(--radius);padding:20px 24px;margin-bottom:12px;border-bottom:none;box-shadow:0 1px 3px rgba(0,0,0,0.02),0 4px 16px rgba(0,0,0,0.03);transition:var(--tr);}
+.section-header::after{display:none;}
+.section-header:hover{border-color:rgba(212,151,63,0.18)!important;box-shadow:0 4px 12px rgba(0,0,0,0.05),0 12px 40px rgba(0,0,0,0.06);transform:translateY(-2px);}
+.section-header .section-icon{font-size:28px;margin-right:16px;line-height:1;flex-shrink:0;}
+.section-header .section-left{display:flex;align-items:center;gap:0;flex:1;min-width:0;}
+.section-header .section-desc{display:none;font-family:'Outfit',sans-serif;font-size:13px;color:var(--text-muted);font-weight:400;margin-top:4px;line-height:1.4;}
+.section-header.collapsed .section-desc{display:block;}
+.section-header .section-title-group{display:flex;flex-direction:column;}
+
+/* ========== PILLAR BAR ========== */
+.pillar-bar-wrap{margin-bottom:28px;}
+.pillar-bar-label{display:flex;justify-content:space-between;margin-bottom:8px;}
+.pillar-bar-label span{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;font-weight:500;}
+.pillar-bar{display:flex;height:32px;border-radius:8px;overflow:hidden;margin-bottom:6px;background:rgba(0,0,0,0.03);}
+.pillar-bar div{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--pure-white);transition:all 0.4s;position:relative;letter-spacing:0.3px;}
+.pillar-bar div::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.2) 0%,transparent 60%);pointer-events:none;}
+.pillar-bar div:hover{filter:brightness(1.12);}
+.pillar-bar-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;}
+.pillar-bar-legend span{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;font-weight:400;}
+.pillar-bar-legend span i{display:inline-block;width:8px;height:8px;border-radius:3px;flex-shrink:0;}
+
+/* ========== FILTER BUTTONS ========== */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+.filter-btn{font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;padding:7px 16px;border-radius:24px;border:1px solid rgba(0,0,0,0.1);background:transparent;color:var(--text-muted);cursor:pointer;transition:var(--tr);}
+.filter-btn:hover{border-color:rgba(212,151,63,0.4);color:var(--text-primary);background:rgba(212,151,63,0.05);}
+.filter-btn.active{background:var(--peach);color:var(--pure-white);border-color:var(--peach);font-weight:600;box-shadow:0 2px 16px rgba(212,151,63,0.25);}
+
+/* ========== CALENDAR ========== */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:36px;}
+.cal-day-header{font-size:10px;color:var(--text-muted);text-align:center;padding:10px 0;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+.cal-cell{background:var(--glass-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:10px;padding:12px;min-height:126px;cursor:pointer;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);border:1px solid var(--glass-border);border-left:3px solid transparent;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.cal-cell:hover{border-color:rgba(212,151,63,0.2);border-left-color:var(--peach)!important;transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 12px 32px rgba(0,0,0,0.08);}
+.cal-cell.empty{background:rgba(0,0,0,0.015);cursor:default;min-height:auto;border-left:1px solid transparent;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}
+.cal-cell.empty:hover{border-color:transparent;border-left-color:transparent!important;transform:none;box-shadow:none;}
+.cal-cell[data-pillar="product"]{border-left-color:var(--pillar-product);}
+.cal-cell[data-pillar="philosophy"]{border-left-color:var(--pillar-philosophy);}
+.cal-cell[data-pillar="education"]{border-left-color:var(--pillar-education);}
+.cal-cell[data-pillar="community"]{border-left-color:var(--pillar-community);}
+.cal-cell[data-pillar="social-proof"]{border-left-color:var(--pillar-social);}
+.cal-cell[data-pillar="hype"]{border-left-color:var(--pillar-hype);}
+.cal-cell .cal-date{font-size:11px;color:var(--text-muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-weight:500;}
+.cal-cell .cal-caption{font-size:11px;color:var(--text-secondary);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cal-cell .cal-pillar{display:inline-block;font-size:9px;padding:2px 8px;border-radius:10px;margin-top:8px;font-weight:700;color:var(--pure-white);letter-spacing:0.3px;}
+.cal-cell .cal-visual-type{font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.6px;margin-top:3px;}
+.cal-vt-text{background:rgba(0,0,0,0.05);color:var(--text-muted);}
+.cal-vt-image{background:rgba(212,151,63,0.12);color:var(--peach);}
+.cal-vt-video{background:rgba(74,154,196,0.12);color:var(--sky-blue);}
+.cal-vt-poll{background:rgba(196,152,10,0.1);color:var(--gold-yellow);}
+.cal-vt-article{background:rgba(46,143,95,0.1);color:var(--mint-green);}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.status-dot.posted{background:var(--mint-green);box-shadow:0 0 6px rgba(46,143,95,0.3);}
+.status-dot.scheduled{background:var(--gold-yellow);animation:pulse 2s infinite;}
+.status-dot.future{background:#C0C2BC;}
+.cal-cell.filtered-out{opacity:0.1;pointer-events:none;transform:scale(0.97);}
+
+/* ========== CARDS ========== */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
+.card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.04),transparent);pointer-events:none;}
+.card:hover{border-color:rgba(212,151,63,0.2);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 12px 40px rgba(0,0,0,0.08);transform:translateY(-4px);}
+.card h4{font-size:15px;margin-bottom:8px;font-weight:700;letter-spacing:-0.2px;color:var(--text-primary);}
+.card p{font-size:13px;color:var(--text-muted);line-height:1.6;}
+.card .badge{display:inline-block;font-size:10px;padding:3px 10px;border-radius:12px;font-weight:600;margin-bottom:10px;letter-spacing:0.3px;}
+.badge-text{background:rgba(0,0,0,0.05);color:var(--text-secondary);}
+.badge-graphic{background:rgba(212,151,63,0.12);color:var(--peach);}
+.badge-video{background:rgba(74,154,196,0.12);color:var(--sky-blue);}
+.badge-mixed{background:rgba(196,152,10,0.1);color:var(--gold-yellow);}
+
+/* ========== ACCORDION (Graphics Vault) ========== */
+.accordion{border:1px solid var(--glass-border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;transition:border-color var(--tr);}
+.accordion:hover{border-color:rgba(0,0,0,0.12);}
+.accordion summary{padding:16px 20px;font-size:14px;font-weight:600;cursor:pointer;background:var(--glass-bg);color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;list-style:none;transition:var(--tr);letter-spacing:-0.1px;}
+.accordion summary::-webkit-details-marker{display:none;}
+.accordion summary:hover{background:rgba(255,255,255,0.8);}
+.accordion summary .count{font-size:11px;color:var(--text-muted);font-weight:400;background:rgba(0,0,0,0.04);padding:2px 10px;border-radius:12px;}
+.accordion .acc-body{padding:16px 20px;background:rgba(0,0,0,0.015);display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+.acc-item{display:flex;flex-direction:column;padding:10px;border-radius:10px;background:var(--pure-white);border:1px solid rgba(0,0,0,0.05);font-size:12px;cursor:pointer;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.acc-item:hover{border-color:rgba(212,151,63,0.2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.06);}
+.acc-item .acc-thumb{width:100%;border-radius:8px;margin-bottom:8px;aspect-ratio:16/10;object-fit:cover;background:#F0EFED;}
+.acc-item .fname{color:var(--text-muted);font-family:'Outfit',monospace;font-size:10px;word-break:break-all;margin-bottom:4px;font-weight:500;}
+.acc-item .fdesc{color:var(--text-muted);font-size:10px;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.status-badge{font-size:10px;padding:3px 10px;border-radius:12px;font-weight:600;white-space:nowrap;letter-spacing:0.2px;}
+.status-ready{background:rgba(46,143,95,0.1);color:var(--mint-green);}
+.status-needs-copy{background:rgba(196,152,10,0.1);color:var(--gold-yellow);}
+.status-posted{background:rgba(0,0,0,0.05);color:var(--text-muted);}
+.status-action{background:rgba(184,114,42,0.1);color:var(--clay);border:1px solid rgba(184,114,42,0.15);}
+
+/* ========== SUMMARY STATS ========== */
+.summary-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;}
+.summary-stat{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:16px 24px;text-align:center;min-width:110px;transition:var(--tr);box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.summary-stat:hover{border-color:rgba(212,151,63,0.15);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.summary-stat .ss-num{font-family:'Funnel Display',sans-serif;font-size:28px;font-weight:700;color:var(--peach);line-height:1.1;}
+.summary-stat .ss-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:500;margin-top:2px;}
+
+/* ========== DONUT / CHART ========== */
+.chart-row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;}
+.donut-wrap{text-align:center;}
+.donut{width:160px;height:160px;border-radius:50%;position:relative;margin:0 auto 12px;}
+.donut-hole{position:absolute;top:20%;left:20%;width:60%;height:60%;border-radius:50%;background:var(--page-bg);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.donut-hole .num{font-family:'Funnel Display',sans-serif;font-size:24px;font-weight:700;color:var(--peach);}
+.donut-hole .lbl{font-size:10px;color:var(--text-muted);}
+
+/* ========== MODAL ========== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:32px;opacity:0;visibility:hidden;transition:opacity 0.35s,visibility 0.35s;}
+.modal-overlay.show{opacity:1;visibility:visible;}
+.modal{background:rgba(255,255,255,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0,0,0,0.08);border-radius:20px;max-width:580px;width:100%;max-height:82vh;overflow-y:auto;padding:36px;position:relative;transform:scale(0.94) translateY(12px);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 30px rgba(0,0,0,0.1),0 24px 80px rgba(0,0,0,0.12);}
+.modal-overlay.show .modal{transform:scale(1) translateY(0);}
+.modal-close{position:absolute;top:18px;right:18px;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);width:32px;height:32px;border-radius:8px;color:var(--text-muted);font-size:20px;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{color:var(--text-primary);background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1);}
+.modal .modal-date{font-size:13px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.modal .modal-pillar{display:inline-block;font-size:11px;padding:4px 12px;border-radius:12px;font-weight:700;color:var(--pure-white);margin-bottom:14px;letter-spacing:0.2px;}
+.modal .modal-caption{font-size:15px;color:var(--text-primary);line-height:1.75;margin-bottom:18px;white-space:pre-line;}
+.modal .modal-meta{font-size:12px;color:var(--text-muted);line-height:1.7;padding-top:16px;border-top:1px solid rgba(0,0,0,0.06);}
+.modal .modal-meta strong{color:var(--text-primary);}
+.modal .modal-img{width:100%;border-radius:12px;margin-bottom:18px;border:1px solid rgba(0,0,0,0.06);display:none;}
+.modal .modal-img.loaded{display:block;}
+.modal .modal-video{width:100%;border-radius:12px;margin-bottom:18px;border:1px solid rgba(0,0,0,0.06);display:none;background:#000;}
+.modal .modal-video.loaded{display:block;}
+
+/* ========== LIGHTBOX ========== */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;padding:32px;cursor:zoom-out;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;}
+.lightbox.show{opacity:1;visibility:visible;}
+.lightbox img{max-width:90%;max-height:90vh;border-radius:12px;box-shadow:0 16px 60px rgba(0,0,0,0.4);}
+
+/* ========== VIDEO GRID ========== */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:28px;}
+.video-card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.video-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,154,196,0.1),transparent);pointer-events:none;}
+.video-card:hover{border-color:rgba(74,154,196,0.2);transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 12px 40px rgba(0,0,0,0.08);}
+.video-card .priority{position:absolute;top:18px;right:18px;width:30px;height:30px;border-radius:50%;background:rgba(74,154,196,0.1);color:var(--sky-blue);font-family:'Funnel Display',sans-serif;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;border:1px solid rgba(74,154,196,0.12);}
+.video-card h4{font-size:15px;margin-bottom:5px;padding-right:40px;letter-spacing:-0.2px;color:var(--text-primary);}
+.video-card .vid-meta{font-size:11px;color:var(--text-muted);margin-bottom:10px;display:flex;gap:14px;font-weight:400;}
+.video-card p{font-size:12px;color:var(--text-muted);line-height:1.6;}
+.qw-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.qw-card{background:var(--glass-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--glass-border);border-radius:10px;padding:16px;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.qw-card:hover{border-color:rgba(74,154,196,0.15);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.qw-card h4{font-size:13px;margin-bottom:5px;color:var(--text-primary);}
+.qw-card p{font-size:11px;color:var(--text-muted);line-height:1.5;}
+
+/* ========== COMPETITOR INTEL ========== */
+.comp-intro{font-size:14px;color:var(--text-muted);line-height:1.75;max-width:740px;margin-bottom:28px;}
+.comp-intro strong{color:var(--text-primary);}
+.comp-table{width:100%;border-collapse:collapse;margin-bottom:32px;font-size:13px;}
+.comp-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.08);font-weight:600;}
+.comp-table td{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.04);vertical-align:top;transition:background 0.3s;}
+.comp-table tr:hover td{background:rgba(0,0,0,0.02);}
+.comp-table tr:last-child td{border-bottom:none;}
+.comp-table .comp-name{color:var(--text-primary);font-weight:700;}
+.comp-table .comp-handle{color:var(--text-muted);font-size:12px;}
+.comp-table .comp-desc{color:var(--text-muted);font-size:12px;line-height:1.5;}
+.opp-list{margin-top:28px;}
+.opp-item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(0,0,0,0.04);transition:var(--tr);}
+.opp-item:hover{padding-left:8px;}
+.opp-item:last-child{border-bottom:none;}
+.opp-num{width:30px;height:30px;border-radius:50%;background:rgba(212,151,63,0.1);color:var(--peach);font-family:'Funnel Display',sans-serif;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(212,151,63,0.1);}
+.opp-item h4{font-size:14px;margin-bottom:3px;letter-spacing:-0.1px;color:var(--text-primary);}
+.opp-item p{font-size:12px;color:var(--text-muted);line-height:1.5;}
+.comp-monitoring{margin-top:28px;padding:18px 22px;background:rgba(212,151,63,0.04);border:1px solid rgba(212,151,63,0.1);border-radius:var(--radius);font-size:13px;color:var(--text-muted);line-height:1.7;}
+.comp-monitoring strong{color:var(--peach);}
+
+/* ========== SKILLS ========== */
+.skill-orchestrator{background:var(--glass-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:2px solid rgba(212,151,63,0.2);border-radius:var(--radius);padding:28px;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.skill-orchestrator::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(212,151,63,0.04) 0%,transparent 60%);pointer-events:none;}
+.skill-orchestrator h4{font-size:20px;color:var(--peach);margin-bottom:5px;position:relative;}
+.skill-orchestrator p{color:var(--text-muted);font-size:13px;line-height:1.6;position:relative;}
+.skill-orchestrator .trigger{font-family:'Outfit',monospace;font-size:13px;font-weight:600;color:var(--peach);background:rgba(212,151,63,0.06);padding:5px 14px;border-radius:8px;display:inline-block;margin-top:10px;border:1px solid rgba(212,151,63,0.12);position:relative;}
+.skill-card{background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.skill-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.03),transparent);pointer-events:none;}
+.skill-card:hover{border-color:rgba(212,151,63,0.2);transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,0.06),0 8px 32px rgba(0,0,0,0.06);}
+.skill-card .trigger{font-family:'Outfit',monospace;font-size:12px;font-weight:600;color:var(--peach);margin-bottom:6px;display:block;}
+.skill-card p{font-size:12px;color:var(--text-muted);line-height:1.5;}
+
+/* ========== VOICE ========== */
+.tone-bar-wrap{margin-bottom:28px;}
+.tone-bar{display:flex;height:40px;border-radius:10px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.tone-bar div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;letter-spacing:0.2px;}
+.voice-block{background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;margin-bottom:16px;transition:border-color var(--tr);box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.voice-block:hover{border-color:rgba(0,0,0,0.1);}
+.voice-block h4{font-size:16px;margin-bottom:10px;letter-spacing:-0.2px;color:var(--text-primary);}
+.voice-block p,.voice-block li{font-size:13px;color:var(--text-muted);line-height:1.7;}
+.voice-block ul{padding-left:20px;}
+.voice-block li{margin-bottom:5px;}
+.voice-block blockquote{border-left:3px solid var(--peach);padding:10px 18px;margin:10px 0;font-size:14px;color:var(--text-secondary);font-style:italic;background:rgba(212,151,63,0.04);border-radius:0 8px 8px 0;line-height:1.6;}
+.voice-block .contrast{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.03);}
+.voice-block .contrast:last-child{border-bottom:none;}
+.voice-block .contrast .comp-name{width:100px;flex-shrink:0;font-weight:600;}
+.voice-block .contrast .comp-desc{color:var(--text-muted);}
+.never-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;}
+.never-item{background:rgba(212,85,62,0.04);border:1px solid rgba(212,85,62,0.08);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text-muted);line-height:1.5;transition:var(--tr);}
+.never-item:hover{border-color:rgba(212,85,62,0.18);background:rgba(212,85,62,0.06);}
+
+/* ========== SCROLL TO TOP ========== */
+.scroll-top{position:fixed;bottom:28px;right:28px;width:44px;height:44px;border-radius:50%;background:var(--peach);color:var(--pure-white);border:none;font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:99;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 4px 16px rgba(212,151,63,0.25);font-weight:700;}
+.scroll-top:hover{transform:scale(1.1) translateY(-2px);box-shadow:0 8px 24px rgba(212,151,63,0.35);}
+.scroll-top.show{display:flex;}
+
+/* ========== RESPONSIVE ========== */
+@media(max-width:900px){
+  .nav-links{gap:1px;}.nav-links a{font-size:11px;padding:5px 8px;}
+  .section{padding:24px 16px;}.hero{padding:80px 20px 32px;}.hero h1{font-size:36px;}
+  .stats-row{gap:10px;}.stat-card{padding:14px 18px;min-width:100px;}.stat .num{font-size:28px;}
+  .cal-grid{grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-cell{padding:8px;min-height:96px;border-left-width:2px!important;border-radius:8px;}
+  .cal-cell .cal-caption{-webkit-line-clamp:1;font-size:10px;}
+  .card-grid{grid-template-columns:1fr;}.video-grid{grid-template-columns:1fr;}
+  .chart-row{flex-direction:column;align-items:center;}
+}
+@media(max-width:640px){
+  .nav-brand{font-size:11px;letter-spacing:1px;}.nav-links a span{display:none;}
+  .hero h1{font-size:28px;}.stats-row{gap:8px;}
+  .stat-card{padding:12px 14px;min-width:80px;}.stat .num{font-size:22px;}.stat .label{font-size:9px;}
+  .cal-grid{font-size:9px;gap:2px;}.cal-cell{min-height:74px;padding:5px;}
+  .cal-cell .cal-pillar{font-size:8px;padding:1px 6px;}.cal-cell .cal-visual-type{font-size:7px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">SatPay <span style="color:var(--text-muted);font-weight:400;">Command Center</span></div>
+  <div class="nav-links">
+    <a href="#calendar">Calendar</a>
+    <a href="#series">Series</a>
+    <a href="#graphics">Graphics</a>
+    <a href="#videos">Videos</a>
+    <a href="#competitors">Competitors</a>
+    <a href="#skills">Skills</a>
+    <a href="#voice">Voice</a>
+    <button class="nav-btn" id="toggleAllBtn" onclick="toggleAll()">Expand All</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="hero-content">
+    <h1><span>SatPay</span> Twitter Command Center</h1>
+    <p class="subtitle">Feb 14 &ndash; Mar 15, 2026 &nbsp;|&nbsp; GTM 6-Week Sprint</p>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat"><div class="num" data-target="29">0</div><div class="label">Posts Planned</div></div></div>
+      <div class="stat-card"><div class="stat"><div class="num" data-target="18">0</div><div class="label">Series Types</div></div></div>
+      <div class="stat-card"><div class="stat"><div class="num" data-target="44">0</div><div class="label">Graphics</div></div></div>
+      <div class="stat-card"><div class="stat"><div class="num" data-target="10">0</div><div class="label">Video Concepts</div></div></div>
+      <div class="stat-card"><div class="stat"><div class="num" data-target="5">0</div><div class="label">Competitors Tracked</div></div></div>
+    </div>
+  </div>
+</section>
+
+<main>
+
+<!-- CALENDAR -->
+<section class="section" id="calendar">
+  <div class="section-header" style="cursor:default;background:transparent;border:none!important;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:14px 0;">
+    <div class="section-left"><div class="section-title-group"><h2>Content Calendar <span class="section-count">29 posts</span></h2></div></div>
+  </div>
+  <div class="section-body" id="calendarBody">
+    <div class="pillar-bar-wrap">
+      <div class="pillar-bar-label"><span>Actual Distribution</span><span>Target in parentheses</span></div>
+      <div class="pillar-bar">
+        <div style="width:38%;background:var(--pillar-product)">38%</div>
+        <div style="width:14%;background:var(--pillar-philosophy)">14%</div>
+        <div style="width:21%;background:var(--pillar-education)">21%</div>
+        <div style="width:21%;background:var(--pillar-community)">21%</div>
+        <div style="width:7%;background:var(--pillar-social)">7%</div>
+      </div>
+      <div class="pillar-bar-legend">
+        <span><i style="background:var(--pillar-product)"></i> Product 38% (30%)</span>
+        <span><i style="background:var(--pillar-philosophy)"></i> Philosophy 14% (20%)</span>
+        <span><i style="background:var(--pillar-education)"></i> Education 21% (20%)</span>
+        <span><i style="background:var(--pillar-community)"></i> Community 21% (15%)</span>
+        <span><i style="background:var(--pillar-social)"></i> Social Proof 7% (10%)</span>
+      </div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterPillar('all',this)">All</button>
+      <button class="filter-btn" onclick="filterPillar('product',this)">Product</button>
+      <button class="filter-btn" onclick="filterPillar('philosophy',this)">Philosophy</button>
+      <button class="filter-btn" onclick="filterPillar('education',this)">Education</button>
+      <button class="filter-btn" onclick="filterPillar('community',this)">Community</button>
+      <button class="filter-btn" onclick="filterPillar('social-proof',this)">Social Proof</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</section>
+
+<!-- SERIES CATALOG -->
+<section class="section" id="series">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#9881;&#65039;</span><div class="section-title-group"><h2>Post Series Catalog <span class="section-count">18 series</span></h2><span class="section-desc">Recurring formats: Never Sell, Bitcoin Standard, What If, video templates, and more</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <h3 style="font-size:16px;color:var(--peach);margin-bottom:14px;">Signature Visual Series</h3>
+    <div class="card-grid" style="margin-bottom:32px;">
+      <div class="card"><span class="badge badge-graphic">Graphic</span><h4>"The Bitcoin Standard." Visual Series</h4><p>Premium conceptual 3D render posters. "The Bitcoin Standard. [Benefit]." paired with photorealistic visual metaphors. Inspired by Plasma's "One Dollar." campaign. 8 concepts ready (Self-Repaying, Always Earning, Never Selling, Spend Anywhere, Borrow Smart, Always Working, Tax Smart, The Full Loop). Phase 1: first 4 concepts. Phase 2: remaining 4 after format is proven.</p></div>
+      <div class="card"><span class="badge badge-graphic">Graphic</span><h4>"Never Sell Your Bitcoin"</h4><p>Short punchy caption + SatPay product graphic. "Never sell your Bitcoin" or variation. The caption is the emotional hook, the graphic delivers proof. Uses Don't Sell. Borrow. variants, app mockups, card visuals.</p></div>
+      <div class="card"><span class="badge badge-text">Text</span><h4>"The Bitcoin Standard:" Text</h4><p>Text-only tagline variations. "The Bitcoin Standard: [what living on it looks like]." Low-effort siblings of the Visual Series. Keeps the tagline in the timeline daily between premium visual drops.</p></div>
+      <div class="card"><span class="badge badge-text">Text</span><h4>"What if..."</h4><p>Scenario-based text hooks that make the audience imagine using SatPay. Proven top performer format in SatPay's own tweet data. Always text-only.</p></div>
+    </div>
+    <h3 style="font-size:16px;color:var(--sky-blue);margin-bottom:14px;">Video Formats</h3>
+    <div class="card-grid" style="margin-bottom:32px;">
+      <div class="card"><span class="badge badge-video">Video</span><h4>Ship-Day Event Videos</h4><p>Every feature ship gets a dedicated 15-45s video. Product-focused, shows real UI. Inspired by Avici (500-1,000+ likes per launch video). Reusable template format.</p></div>
+      <div class="card"><span class="badge badge-video">Video</span><h4>Product Explainer Videos</h4><p>30-45s animated walkthroughs explaining how features work. Not "what we shipped" but "how it works and why it matters." Concepts: How Borrow Works, Self-Repaying Loans, The Full Loop.</p></div>
+      <div class="card"><span class="badge badge-video">Video</span><h4>Animated Graphic Showcases</h4><p>Take existing strong static graphics and add subtle motion. Elements slide in, text reveals, transitions. 15-20s. Quick to produce, adds visual variety.</p></div>
+      <div class="card"><span class="badge badge-video">Video</span><h4>Hype / Promo Videos</h4><p>Short re:motion brand energy ads. Show the product looking premium, build excitement. Not feature-specific. 5-30s. "This is SatPay." Pin-worthy.</p></div>
+    </div>
+    <h3 style="font-size:16px;color:var(--mint-green);margin-bottom:14px;">Recurring Post Types</h3>
+    <div class="card-grid" style="margin-bottom:32px;">
+      <div class="card"><span class="badge badge-graphic">Graphic</span><h4>Milestone Graphics</h4><p>Real numbers with clean design. Beta users, BTC deposited, borrow volume, waitlist size. Reusable template from design team.</p></div>
+      <div class="card"><span class="badge badge-mixed">Mixed</span><h4>Education / Tax Angle</h4><p>Shareable facts and breakdowns. Tax efficiency, borrow vs. sell, how yield works. Custom typographic graphic or thread. Punchy and factual.</p></div>
+      <div class="card"><span class="badge badge-text">Text</span><h4>Community / Engagement</h4><p>Polls, reply bait, gm posts, community love. Build loyalty, drive replies, boost algorithmic reach. Text-only, polls, questions.</p></div>
+      <div class="card"><span class="badge badge-graphic">Graphic</span><h4>Comparison / Differentiation</h4><p>"Them vs SatPay" framing without naming competitors. Split-screen graphics, contrast angles. Shows what SatPay does differently.</p></div>
+      <div class="card"><span class="badge badge-graphic">Graphic</span><h4>Lifestyle Posts</h4><p>Premium card-in-the-wild visuals. Pure vibe, minimal text. Lifestyle templates with real copy. Humanizes the brand.</p></div>
+      <div class="card"><span class="badge badge-mixed">Mixed</span><h4>Coretoshi / Core Ecosystem</h4><p>Content for the Core community. SatPay as a CORE demand engine, ecosystem growth, buyback connection. Speaks their language.</p></div>
+      <div class="card"><span class="badge badge-text">Text</span><h4>Twitter Articles</h4><p>Monthly long-form on X. Product updates, vision pieces, deep explainers. Only when there's something worth saying at length.</p></div>
+      <div class="card"><span class="badge badge-mixed">Mixed</span><h4>Threads</h4><p>3-5 tweet deep dives. Hook with graphic in tweet 1, substance in remaining tweets. How borrow works, self-repaying loans explained, Mobilum credibility story.</p></div>
+    </div>
+    <h3 style="font-size:16px;color:var(--coral-red);margin-bottom:14px;">Reactive Posts</h3>
+    <div class="card-grid">
+      <div class="card"><span class="badge badge-text">Text</span><h4>BTC Price Reaction</h4><p>React to BTC price moves with SatPay's angle. Pumps: "Your Bitcoin just went up 10%. On SatPay, it was already earning yield on top of that." Dips: "Markets are red. Your yield is still stacking."</p></div>
+      <div class="card"><span class="badge badge-text">Text</span><h4>Operational Confidence</h4><p>During market volatility, post about SatPay's stability. Turn infrastructure into a trust signal. Inspired by Strike's "All systems running smoothly."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- GRAPHICS VAULT -->
+<section class="section" id="graphics">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#127912;</span><div class="section-title-group"><h2>Graphics Vault <span class="section-count">44 graphics</span></h2><span class="section-desc">Full inventory — 29 ready, 13 need copy, 2 posted. Grouped by series.</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <div class="summary-stats">
+      <div class="summary-stat"><div class="ss-num">44</div><div class="ss-label">Total</div></div>
+      <div class="summary-stat"><div class="ss-num">29</div><div class="ss-label">Ready</div></div>
+      <div class="summary-stat"><div class="ss-num">13</div><div class="ss-label">Needs Copy</div></div>
+      <div class="summary-stat"><div class="ss-num">2</div><div class="ss-label">Posted</div></div>
+    </div>
+    <details class="accordion"><summary>The Neobank for Living on a Bitcoin Standard <span class="count">1 graphic</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">neobank-launching-soon.png</span><span class="fdesc">Centered text, dark bg, gold/white text, SatPay logo</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Live on a Bitcoin Standard" Series <span class="count">2 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">bitcoin-standard-dual-cards.png</span><span class="fdesc">Left headline, two overlapping cards (gold Visa + black MC)</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">bitcoin-standard-single-card.png</span><span class="fdesc">Left headline, single black SatPay Mastercard</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Don't Sell. Borrow." Series <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">dont-sell-borrow-ltv-ui.png</span><span class="fdesc">LTV 25% UI card, 3D dollar coins, placeholder CTA</span><span class="status-badge status-action">Action: Swap CTA</span></div><div class="acc-item"><span class="fname">dont-sell-borrow-app-mockup.png</span><span class="fdesc">iPhone mockup, SatPay home screen, placeholder CTA</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">dont-sell-borrow-spend-cards.png</span><span class="fdesc">Two cards (gold virtual + dark physical MC)</span><span class="status-badge status-posted">Posted</span></div></div></details>
+    <details class="accordion"><summary>"Spend Bitcoin, Anywhere." Series <span class="count">5 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">spend-anywhere-gold-lines.png</span><span class="fdesc">Large headline, gold curved decorative lines, placeholder CTA</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">spend-anywhere-minimal-lines.png</span><span class="fdesc">Centered headline, no logo, gold corner accents</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">spend-anywhere-gradient-shape.png</span><span class="fdesc">Centered headline in peach-to-grey gradient rounded rect</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">spend-anywhere-app-screens.png</span><span class="fdesc">Gold headline, floating app UI mockup screenshots</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">spend-anywhere-dual-cards.png</span><span class="fdesc">Gold headline, two overlapping angled cards</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"What If You Could Spend Bitcoin" Series <span class="count">5 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">what-if-spend-gold-highlighted.png</span><span class="fdesc">Warm golden gradient, "spend" highlighted with white box</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">what-if-spend-warm-gradient.png</span><span class="fdesc">Golden-to-grey gradient, "spend" highlighted</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">what-if-spend-dark-highlighted.png</span><span class="fdesc">Dark charcoal, "spend" with peach highlight, SatPay icon</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">what-if-spend-dark-clean.png</span><span class="fdesc">Dark charcoal, no word highlight, subtle light shape</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">what-if-spend-square.png</span><span class="fdesc">Square/portrait format, dark bg, diagonal shape</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Get Early Access" Series <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">early-access-gold-white.png</span><span class="fdesc">Gold gradient, SatPay logo, QR code, "Get early access"</span><span class="status-badge status-action">Action: Swap Text</span></div><div class="acc-item"><span class="fname">early-access-gold-black.png</span><span class="fdesc">Same as above, black text variant</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">early-access-dark.png</span><span class="fdesc">Dark bg variant, white text/logo, QR code</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Send Bitcoin Anywhere" Series <span class="count">4 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">send-bitcoin-line-art.png</span><span class="fdesc">Left headline, outlined geometric shapes, placeholder text</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">send-bitcoin-single-card.png</span><span class="fdesc">Left headline, floating SatPay card, placeholder text</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">send-bitcoin-dual-cards.png</span><span class="fdesc">Left headline, two cards (gold virtual + cream physical)</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">send-bitcoin-dark-cards.png</span><span class="fdesc">Left headline, two overlapping dark cards, SatPay icon</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Your Bitcoin, Now in Motion" Series <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">bitcoin-in-motion-single-card.png</span><span class="fdesc">Left headline, single dark SatPay card at angle</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">bitcoin-in-motion-dual-cards.png</span><span class="fdesc">Left headline, two overlapping cards (gold + cream)</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">bitcoin-in-motion-mastercard.png</span><span class="fdesc">Left headline, two fanned cards, Mastercard branding</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Own Bitcoin. Use Bitcoin." Series <span class="count">4 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">own-use-bitcoin-tracks.png</span><span class="fdesc">Left headline, gold-to-grey gradient track shapes, placeholder</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">own-use-bitcoin-zigzag.png</span><span class="fdesc">Left headline, SatPay icon, peach-to-gold zigzag, placeholder</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">own-use-bitcoin-overlapping-shapes.png</span><span class="fdesc">Centered text, two overlapping peach/grey pill shapes</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">own-use-bitcoin-single-shape.png</span><span class="fdesc">Centered text, single warm-to-cool gradient rounded rect</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"Launching Soon" Series <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">launching-soon-white.png</span><span class="fdesc">Centered white text, dark bg, minimal</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">launching-soon-gold.png</span><span class="fdesc">Centered gold text, SatPay S pattern bg</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">launching-soon-cards-overlay.png</span><span class="fdesc">Text overlay on two diagonal SatPay cards</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>"You've Been Selected" Series <span class="count">2 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">youve-been-selected-gold.png</span><span class="fdesc">Centered gold text, SatPay S pattern bg</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">youve-been-selected-cards-overlay.png</span><span class="fdesc">Text overlay on two diagonal SatPay cards</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>Bitcoin Utility Headline <span class="count">1 graphic</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">bitcoin-utility-headline.png</span><span class="fdesc">SatPay icon, large headline, SatPay S tiled bg</span><span class="status-badge status-posted">Posted</span></div></div></details>
+    <details class="accordion"><summary>Launching in Region <span class="count">1 graphic</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">launching-region-world-map.png</span><span class="fdesc">Left headline, halftone world map, warm glow point</span><span class="status-badge status-action">Action: Swap Text</span></div></div></details>
+    <details class="accordion"><summary>App Dashboard Showcase <span class="count">1 graphic</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">app-dashboard-mockup.png</span><span class="fdesc">SatPay icon, iPhone mockup with full dashboard UI</span><span class="status-badge status-ready">Ready</span></div></div></details>
+    <details class="accordion"><summary>Lifestyle Templates <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">lifestyle-eye-closeup.png</span><span class="fdesc">Split layout: dark text left, golden-lit eye photo right</span><span class="status-badge status-needs-copy">Needs Copy</span></div><div class="acc-item"><span class="fname">lifestyle-card-pocket-dark.png</span><span class="fdesc">Split: dark text left, card-in-pocket photo right</span><span class="status-badge status-action">Action: Swap Text</span></div><div class="acc-item"><span class="fname">lifestyle-card-pocket-peach.png</span><span class="fdesc">Split: warm peach left, card-in-pocket photo right</span><span class="status-badge status-action">Action: Swap Text</span></div></div></details>
+    <details class="accordion"><summary>Standalone / Utility Graphics <span class="count">3 graphics</span></summary><div class="acc-body"><div class="acc-item"><span class="fname">silhouette-portrait-peach.png</span><span class="fdesc">Centered portrait silhouette, warm peach gradient</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">cards-only-cropped.png</span><span class="fdesc">Two SatPay cards angled, dark bg, no headline</span><span class="status-badge status-ready">Ready</span></div><div class="acc-item"><span class="fname">abstract-gold-pattern.png</span><span class="fdesc">Full-bleed abstract, gold gradient outlined rounded rects</span><span class="status-badge status-action">Action: Add Title</span></div></div></details>
+  </div>
+</section>
+
+<!-- VIDEO BRIEFS -->
+<section class="section" id="videos">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#127916;</span><div class="section-title-group"><h2>re:motion Video Briefs <span class="section-count">10 concepts</span></h2><span class="section-desc">6 major videos + 4 quick-win animations. Brand anthem ready to deploy.</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <h3 style="font-size:15px;color:var(--sky-blue);margin-bottom:16px;">Major Videos (6)</h3>
+    <div class="video-grid">
+      <div class="video-card"><span class="priority">1</span><h4>Brand Anthem</h4><div class="vid-meta"><span>30-60s</span><span>Hype / Promo</span><span>Created &mdash; ready to deploy</span></div><p>Already created. Pin to profile when ready. Caption: "This is SatPay." Opening must stop the scroll. Design for mute. End on tagline. Loop potential for autoplay watch time.</p></div>
+      <div class="video-card"><span class="priority">2</span><h4>UI Breakdown Walkthrough</h4><div class="vid-meta"><span>25-30s</span><span>Product Explainer</span><span>Calendar: Feb 17</span></div><p>Definitive guided tour of the SatPay app. Dashboard, Earn (yield animating up), Borrow (LTV gauge), Card (virtual + physical overlap), then the loop connects. Pin-worthy product demo.</p></div>
+      <div class="video-card"><span class="priority">3</span><h4>How Borrow Works</h4><div class="vid-meta"><span>30-40s</span><span>Product Explainer</span><span>Calendar: Mar 7</span></div><p>Step-by-step animated borrow flow. Deposit BTC into vault, set collateral (LTV gauge), receive stablecoins, spend on daily life, yield offsets loan over time. The 30-second video that turns curiosity into conviction.</p></div>
+      <div class="video-card"><span class="priority">4</span><h4>Ship-Day Template</h4><div class="vid-meta"><span>15-20s</span><span>Event Video</span><span>Deploy per feature</span></div><p>Reusable template for every feature launch. "Shipped." opening, feature UI demo, proof moment, full dashboard context, end card. Beats 1/4/5 stay same, only 2/3 change per feature. Highest ROI investment.</p></div>
+      <div class="video-card"><span class="priority">5</span><h4>Self-Repaying Loans, Explained</h4><div class="vid-meta"><span>30-45s</span><span>Product Explainer</span><span>Content bank</span></div><p>Animated data viz: loan bar shrinking as yield bar grows over Day 1 to Day 365. The "wait, really?" moment. Impossible to communicate in a static graphic. This is the "aha" moment video.</p></div>
+      <div class="video-card"><span class="priority">6</span><h4>Animated "Never Sell" Showcase</h4><div class="vid-meta"><span>15-20s</span><span>Graphic Showcase</span><span>Calendar: Mar 11</span></div><p>Animate dont-sell-borrow-app-mockup.png. Golden pulse reveals bg texture, text types in, iPhone mockup boots up, app loads. Same 3 words as Feb 16 post but now with motion. Series evolution.</p></div>
+    </div>
+    <h3 style="font-size:15px;color:var(--sky-blue);margin:28px 0 16px;">Quick-Win Animations (4)</h3>
+    <div class="qw-row">
+      <div class="qw-card"><h4>A: what-if-spend-gold-highlighted</h4><p>Text reveals word by word, "spend" highlight snaps on with flash. 8-12s.</p></div>
+      <div class="qw-card"><h4>B: spend-anywhere-dual-cards</h4><p>Cards slide in from bottom, overlapping in sequence. Headline types in. 8-12s.</p></div>
+      <div class="qw-card"><h4>C: bitcoin-in-motion-mastercard</h4><p>Cards fan out from stack, headline slides in, MC logo catches gold shimmer. 10-15s.</p></div>
+      <div class="qw-card"><h4>D: own-use-bitcoin-overlapping</h4><p>Two pill shapes slide in from opposite sides, text appears at overlap. 8-12s.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITOR INTEL -->
+<section class="section" id="competitors">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#128269;</span><div class="section-title-group"><h2>Competitor Intel <span class="section-count">5 competitors</span></h2><span class="section-desc">Strike, Fold, ether.fi, Plasma, Avici — tactics we're watching and adapting</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <p class="comp-intro">We did a deep dive on <strong>5 competitors</strong> in the Bitcoin/crypto neobank space &mdash; studying their best-performing tweets, visual strategies, and content formats. The goal wasn't to copy anyone, but to find proven tactics we can adapt for SatPay's voice. Below are the accounts we're watching and the ideas we've already pulled into our strategy.</p>
+    <table class="comp-table">
+      <thead><tr><th>Account</th><th>What They Do</th></tr></thead>
+      <tbody>
+        <tr><td><span class="comp-name">Strike</span> <span class="comp-handle">@Strike</span></td><td class="comp-desc">Bitcoin maximalist. Jack Mallers as the face. Ideological conviction. Black/white/pink editorial art.</td></tr>
+        <tr><td><span class="comp-name">Fold</span> <span class="comp-handle">@Fold_App</span></td><td class="comp-desc">Bitcoin rewards, gamification, gift cards, credit card. Recently public on Nasdaq. Yellow/black 3D renders.</td></tr>
+        <tr><td><span class="comp-name">ether.fi</span> <span class="comp-handle">@ether_fi</span></td><td class="comp-desc">DeFi protocol with non-custodial crypto card. Meme-bro community vibes. Purple/gold, lifestyle shots.</td></tr>
+        <tr><td><span class="comp-name">Plasma</span> <span class="comp-handle">@Plasma</span></td><td class="comp-desc">"The chain for money." Stablecoin L1 for payments. Premium 3D renders, pro video. Most relevant to our strategy.</td></tr>
+        <tr><td><span class="comp-name">Avici</span> <span class="comp-handle">@AviciMoney</span></td><td class="comp-desc">"The People's Bank." Self-custodial on Solana. Scrappy, community-first. Clean whites, iOS-inspired.</td></tr>
+      </tbody>
+    </table>
+    <div class="opp-list">
+      <h3 style="font-size:16px;color:var(--peach);margin-bottom:14px;">Ideas We Took From Them</h3>
+      <div class="opp-item"><span class="opp-num">1</span><div><h4>Pair "The Bitcoin Standard:" with premium visuals</h4><p>Inspired by Plasma's "One Dollar." series (1K+ likes consistently). We're building a visual template for every "Bitcoin Standard:" tweet.</p></div></div>
+      <div class="opp-item"><span class="opp-num">2</span><div><h4>Ship-day event tweets with app UI screenshots</h4><p>Inspired by Avici. Every feature ship = content moment. Show the real product UI. Make launches feel like events.</p></div></div>
+      <div class="opp-item"><span class="opp-num">3</span><div><h4>Operational confidence tweets during volatility</h4><p>Inspired by Strike ("All systems running smoothly" = 834 likes). Turn infrastructure into a trust signal on red days.</p></div></div>
+      <div class="opp-item"><span class="opp-num">4</span><div><h4>TradFi contrast tweets with real data</h4><p>Inspired by Strike + Avici. Specific numbers beat vague claims &mdash; "Your savings account pays 0.01%. Your Bitcoin on SatPay earns 1-3% APY."</p></div></div>
+      <div class="opp-item"><span class="opp-num">5</span><div><h4>30-second product demo videos for key features</h4><p>Inspired by ether.fi + Avici. Short animations for borrow flow, self-repaying loans, and the full loop.</p></div></div>
+    </div>
+    <div class="comp-monitoring"><strong>Ongoing monitoring:</strong> We review all 5 competitor accounts weekly using the <code>/competitor-intel</code> skill. If any of them start doing something that's clearly working, we adapt the tactic for SatPay's voice and add it to the content bank.</div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#9889;</span><div class="section-title-group"><h2>Skills / Tools <span class="section-count">11 agents</span></h2><span class="section-desc">Claude Code slash commands — tweet writing, competitor analysis, calendar review</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <p style="color:var(--text-secondary);font-size:14px;line-height:1.7;margin-bottom:24px;">These are Claude Code slash commands that power SatPay's Twitter workflow. Start with <strong>/twitter-mastermind</strong> for a full strategic session, or jump straight to a specific agent below.</p>
+    <div class="skill-orchestrator">
+      <h4>twitter-mastermind</h4>
+      <p>The brain. Reads all core docs, gives a status briefing, asks what to focus on, then delegates to the right sub-agents. Start here for a Twitter session.</p>
+      <span class="trigger">/twitter-mastermind</span>
+    </div>
+    <div class="card-grid">
+      <div class="skill-card"><span class="trigger">/satpay-tweets</span><p>Write tweets in SatPay's voice. Graphic pairing, caption writing, product rule checking.</p></div>
+      <div class="skill-card"><span class="trigger">/competitor-intel</span><p>Analyze competitor tweets and surface tactics SatPay could adapt.</p></div>
+      <div class="skill-card"><span class="trigger">/twitter-visual-audit</span><p>Review calendar for visual quality, repetition, video opportunities, missing graphics.</p></div>
+      <div class="skill-card"><span class="trigger">/content-calendar-review</span><p>Strategic content gap analysis: pillar balance, audience coverage, pacing.</p></div>
+      <div class="skill-card"><span class="trigger">/tweet-performance</span><p>Analyze engagement data. What's working, patterns, recommendations.</p></div>
+      <div class="skill-card"><span class="trigger">/tweet-log</span><p>Log a newly posted tweet to the tweet log with engagement data.</p></div>
+      <div class="skill-card"><span class="trigger">/tweet-stats-update</span><p>Update SatPay tweet stats or competitor tweet data. Run weekly.</p></div>
+      <div class="skill-card"><span class="trigger">/series-ideation</span><p>Ideate new recurring post series. Generates detailed concepts ready for the catalog.</p></div>
+      <div class="skill-card"><span class="trigger">/graphic-ideation</span><p>Generate new graphic concepts. Checks inventory, identifies gaps, delivers concepts with prompts.</p></div>
+      <div class="skill-card"><span class="trigger">/video-ideation</span><p>Generate video concepts for re:motion. Post-specific briefs and static-to-motion conversions.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- OUR VOICE -->
+<section class="section" id="voice">
+  <div class="section-header collapsed" onclick="toggleSection(this)">
+    <div class="section-left"><span class="section-icon">&#128172;</span><div class="section-title-group"><h2>Our Voice <span class="section-count">identity guide</span></h2><span class="section-desc">Tone, word rules, and the do/don't guide for writing as @sat_pay</span></div></div>
+    <span class="toggle-icon">&#9660;</span>
+  </div>
+  <div class="section-body collapsed" style="max-height:0">
+    <div class="tone-bar-wrap">
+      <h4 style="font-size:14px;color:var(--text-secondary);margin-bottom:10px;">Tone Split</h4>
+      <div class="tone-bar">
+        <div style="width:80%;background:linear-gradient(90deg,var(--deep-forest),var(--sage-grey));color:var(--pure-white);">80% Composed Confidence</div>
+        <div style="width:20%;background:linear-gradient(90deg,var(--peach),var(--clay));color:var(--pure-white);">20% Warmth</div>
+      </div>
+    </div>
+    <div class="voice-block"><h4>We sound like...</h4><p>Someone who already lives on a Bitcoin Standard and is genuinely surprised more people don't. Not angry about it. Just clear-eyed. Confident. Composed. Bitcoin-native. Premium but never pretentious.</p></div>
+    <div class="voice-block">
+      <h4>We don't sound like...</h4>
+      <div class="contrast"><span class="comp-name" style="color:var(--coral-red)">Strike</span><span class="comp-desc">Ideological maximalism. Yelling about fiat. "BTFD" energy.</span></div>
+      <div class="contrast"><span class="comp-name" style="color:var(--gold-yellow)">Fold</span><span class="comp-desc">Gamified energy. Spinning wheels. Carnival vibes.</span></div>
+      <div class="contrast"><span class="comp-name" style="color:var(--sky-blue)">ether.fi</span><span class="comp-desc">Meme-bro tone. Funny as a default, not when it counts.</span></div>
+      <div class="contrast"><span class="comp-name" style="color:var(--mist-grey)">Plasma</span><span class="comp-desc">Institutional boardroom speak. Talking to investors, not people.</span></div>
+    </div>
+    <div class="voice-block">
+      <h4>Example tweets showing the voice</h4>
+      <blockquote>Your Bitcoin should be doing more than sitting in a wallet.</blockquote>
+      <blockquote>The whole point of Bitcoin is financial freedom. Hard to feel free when you have to sell it every time you need cash.</blockquote>
+      <blockquote>Never selling. Always earning. Living on a Bitcoin Standard.</blockquote>
+    </div>
+    <div class="voice-block">
+      <h4>Things we never do</h4>
+      <div class="never-list">
+        <div class="never-item">No em dashes. They're an obvious AI tell. Use periods, commas, or restructure.</div>
+        <div class="never-item">No self-custody claims. SatPay is not self-custodial. Never imply users hold their own keys.</div>
+        <div class="never-item">No DeFi jargon. No "TVL," no "restaking," no "liquidity pools." Talk like a bank, not a protocol.</div>
+        <div class="never-item">No desperate engagement farming. No "like if you agree" or "RT for good luck."</div>
+        <div class="never-item">No fake scenarios. Don't write "Imagine you need $2,000 for rent..." stories.</div>
+        <div class="never-item">No CORE price mentions. Don't make price the focus.</div>
+        <div class="never-item">No old-style waitlist CTAs. It's "get early access" or "apply for beta" now.</div>
+        <div class="never-item">No philosophy disconnected from product. Ours always connects back to what SatPay does.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-date" id="modalDate"></div>
+    <div class="modal-pillar" id="modalPillar"></div>
+    <img class="modal-img" id="modalImg" alt="Post graphic">
+    <video class="modal-video" id="modalVideo" controls playsinline></video>
+    <div class="modal-caption" id="modalCaption"></div>
+    <div class="modal-meta" id="modalMeta"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+  <img id="lightboxImg" alt="Graphic preview">
+</div>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">&uarr;</button>
+
+<script>
+// ===== CALENDAR DATA =====
+const posts = [
+  {date:'Feb 14',day:'Sat',caption:'Over 20,000 joined the waitlist. Only 200 got access.\n\nIf you got the email, welcome to the Bitcoin standard.',visual:'Text-only',pillar:'social-proof',pillarLabel:'Social Proof',status:'posted',type:'T',note:'First post. Exclusivity angle.'},
+  {date:'Feb 16',day:'Mon',caption:'Never sell your Bitcoin.',visual:'dont-sell-borrow-spend-cards.png',pillar:'product',pillarLabel:'Product',status:'posted',type:'G',note:'"Never Sell" series. Dual cards graphic.'},
+  {date:'Feb 17',day:'Tue',caption:'The SatPay website just got a huge upgrade.\n\nFirst sneak peek of what\'s to come...\n\nCheck out the full site to see it all. \ud83d\udc47\nsatpay.app',visual:'Website screenshot (new dark UI refresh)',pillar:'product',pillarLabel:'Product',status:'posted',type:'G',note:'Website refresh announcement.'},
+  {date:'Feb 18',day:'Wed',caption:'The first app where your Bitcoin earns, borrows, and goes straight to a card.\n\nAll without selling a single sat.',visual:'bitcoin-utility-headline.png',pillar:'product',pillarLabel:'Product',status:'posted',type:'G',note:'Full product pitch.'},
+  {date:'Feb 19',day:'Thu',caption:'You\'re about to be able to spend Bitcoin without ever selling it.\n\nWhat are you buying first?',visual:'what-if-spend-gold-highlighted.png',pillar:'community',pillarLabel:'Community',status:'posted',type:'G',note:'Originally slated for Feb 20, posted a day early. Reply bait with the warmest graphic.'},
+  {date:'Feb 20',day:'Fri',caption:'This is SatPay.\n\nWelcome to the Bitcoin Standard.',visual:'Re:motion Video 01: "Spend Without Selling"',pillar:'product',pillarLabel:'Product',status:'future',type:'V',note:'First re:motion video. 23s, dark/minimal/premium. Pin to profile.'},
+  {date:'Feb 21',day:'Sat',caption:'Everyone talks about the Bitcoin Standard. We\'re building the app for it.',visual:'bitcoin-standard-dual-cards.png',pillar:'product',pillarLabel:'Product',status:'future',type:'G',note:'Big claim. Premium graphic. Dual cards.'},
+  {date:'Feb 22',day:'Sun',caption:'Selling Bitcoin to pay a bill is a taxable event.\n\nBorrowing against it isn\'t.\n\nSame liquidity. Completely different cost.',visual:'Text-only',pillar:'education',pillarLabel:'Education',status:'future',type:'T',note:'Tax angle. Weekend save/share content.'},
+  {date:'Feb 23',day:'Mon',caption:'gm to the stackers, the spenders, and the ones who never sell.',visual:'lifestyle-card-pocket-peach.png (swap text: "Spend freely. Hold forever.")',pillar:'community',pillarLabel:'Community',status:'future',type:'G',note:'Light Monday. Warm peach lifestyle. Text swap needed.'},
+  {date:'Feb 24',day:'Tue',caption:'Other crypto cards liquidate your Bitcoin the moment you swipe. SatPay lets you borrow against it instead.\n\nLiquidity without the loss. Zero Bitcoin sold.',visual:'dont-sell-borrow-ltv-ui.png (swap CTA: "Borrow Now.")',pillar:'education',pillarLabel:'Education',status:'future',type:'G',note:'Borrow-vs-sell education. LTV UI graphic. Text swap needed.'},
+  {date:'Feb 25',day:'Wed',caption:'The Bitcoin Standard: Your Bitcoin earns while you sleep.',visual:'Text-only',pillar:'philosophy',pillarLabel:'Philosophy',status:'future',type:'T',note:'First "Bitcoin Standard:" text series post.'},
+  {date:'Feb 26',day:'Thu',caption:'Your Bitcoin is either sitting idle or working for you.\n\nWith SatPay it earns yield, backs your loans, and funds your card. Same Bitcoin. Completely different outcome.',visual:'own-use-bitcoin-overlapping-shapes.png',pillar:'education',pillarLabel:'Education',status:'future',type:'G',note:'Warm peach/amber abstract graphic. Different visual feel.'},
+  {date:'Feb 27',day:'Fri',caption:'[TBD \u2014 re:motion video caption]',visual:'Re:motion video #2',pillar:'product',pillarLabel:'Product',status:'future',type:'V',note:'Second re:motion video. Friday video series. Poll displaced to Mar 7.'},
+  {date:'Feb 28',day:'Sat',caption:'Never sell your Bitcoin. Your card works everywhere you do.',visual:'bitcoin-in-motion-mastercard.png',pillar:'product',pillarLabel:'Product',status:'future',type:'G',note:'"Never Sell" series. Mastercard credibility. Strong week close.'},
+  {date:'Mar 1',day:'Sun',caption:'What if you never had to choose between holding Bitcoin and living your life?',visual:'Text-only',pillar:'community',pillarLabel:'Community',status:'future',type:'T',note:'"What if" series. Swapped from Mar 2 to space out Bitcoin Standard posts.'},
+  {date:'Mar 2',day:'Mon',caption:'Other crypto apps: sell BTC, load a card, spend dollars, own less Bitcoin.\n\nSatPay: borrow against BTC, spend stablecoins, keep all your Bitcoin.',visual:'spend-anywhere-dual-cards.png',pillar:'education',pillarLabel:'Education',status:'future',type:'G',note:'Clear contrast. Week opener with punch. Shifted from Mar 3.'},
+  {date:'Mar 3',day:'Tue',caption:'You don\'t have to sell Bitcoin to use it.\n\nBorrow against it, spend stables, keep your full BTC position. No taxable event. No lost upside.',visual:'own-use-bitcoin-single-shape.png',pillar:'education',pillarLabel:'Education',status:'future',type:'G',note:'Warm gradient graphic. Practical explanation. Shifted from Mar 4.'},
+  {date:'Mar 4',day:'Wed',caption:'The Bitcoin Standard: Borrow against your stack. Keep your stack.',visual:'Text-only',pillar:'philosophy',pillarLabel:'Philosophy',status:'future',type:'T',note:'Bitcoin Standard text series. Moved from Mar 1.'},
+  {date:'Mar 5',day:'Thu',caption:'Bitcoin holders have been waiting for a product that lets them use BTC without losing it.\n\nWelcome to SatPay.',visual:'Text-only',pillar:'philosophy',pillarLabel:'Philosophy',status:'future',type:'T',note:'Product-connected philosophy. Statement of intent. Shifted from Mar 6.'},
+  {date:'Mar 6',day:'Fri',caption:'[TBD \u2014 re:motion video caption]',visual:'Re:motion video #3',pillar:'product',pillarLabel:'Product',status:'future',type:'V',note:'Third re:motion video. Friday video series. "Never sell. Spend it everywhere." displaced to Mar 15.'},
+  {date:'Mar 7',day:'Sat',caption:'What matters most to you in a Bitcoin neobank?\n\n- Earn yield on BTC\n- Spend without selling\n- Pay with a debit card anywhere\n- All of the above',visual:'Twitter poll',pillar:'community',pillarLabel:'Community',status:'future',type:'P',note:'Data collection poll. Displaced from Feb 27. Polls work well on weekends.'},
+  {date:'Mar 8',day:'Sun',caption:'Sell BTC and pay taxes, or borrow against it and keep everything.\n\nPick one.',visual:'what-if-spend-warm-gradient.png',pillar:'education',pillarLabel:'Education',status:'future',type:'G',note:'"This or that" format. Gets replies. Warm amber gradient.'},
+  {date:'Mar 9',day:'Mon',caption:'gm to everyone whose Bitcoin is working for them right now.',visual:'Text-only',pillar:'community',pillarLabel:'Community',status:'future',type:'T',note:'Light Monday gm post. Text-only \u2014 clean and simple.'},
+  {date:'Mar 10',day:'Tue',caption:'Every SatPay transaction runs on Core. Every deposit, every borrow, every spend.\n\nSatPay isn\'t just a neobank. It\'s a consumer-scale CORE demand engine.',visual:'launching-region-world-map.png (swap: "Every transaction. Built on Core.")',pillar:'community',pillarLabel:'Community',status:'future',type:'G',note:'Coretoshi post. Core ecosystem value. Text swap needed.'},
+  {date:'Mar 11',day:'Wed',caption:'[Share a real milestone: BTC deposited, beta users, feedback form completions, whatever\'s most impressive by this point]\n\nAnd we\'re just getting started.',visual:'early-access-gold-white.png (swap: milestone number)',pillar:'social-proof',pillarLabel:'Social Proof',status:'future',type:'G',note:'Real numbers. Even modest numbers = momentum. Swapped from Mar 12.'},
+  {date:'Mar 12',day:'Thu',caption:'The Bitcoin Standard: Hold BTC. Earn on BTC. Borrow against BTC. Spend without selling. Repeat.',visual:'Text-only',pillar:'philosophy',pillarLabel:'Philosophy',status:'future',type:'T',note:'"Bitcoin Standard:" text series. Full loop. Swapped from Mar 11.'},
+  {date:'Mar 13',day:'Fri',caption:'Your Bitcoin. Your card. Your terms.',visual:'lifestyle-card-pocket-dark.png (swap: "Never sell. Always spend." + "satpay.app")',pillar:'product',pillarLabel:'Product',status:'future',type:'G',note:'Dark lifestyle template with real copy. Premium visual. Text swap needed.'},
+  {date:'Mar 14',day:'Sat',caption:'Twitter Article: "What SatPay Is Building and Why It Matters"\n\nProduct vision, Mobilum, Core, and where this is headed. Not a roadmap. A vision piece.',visual:'Article format. \u26a0\ufe0f Needs new cover image from design team.',pillar:'product',pillarLabel:'Product',status:'future',type:'A',note:'First Twitter article. Monthly. Full picture for deeper audience.'},
+  {date:'Mar 15',day:'Sun',caption:'Never sell your Bitcoin. Spend it everywhere.',visual:'spend-anywhere-gradient-shape.png (swap "anywhere" to "everywhere")',pillar:'product',pillarLabel:'Product',status:'future',type:'G',note:'"Never Sell" series. Peach-to-grey gradient. Displaced from Week 3 by re:motion video.'}
+];
+
+const postImages = [
+  null,'dont-sell-borrow-spend-cards.png',null,'bitcoin-utility-headline.png',
+  'what-if-spend-gold-highlighted.png','Videos/spend-without-selling-v1.mp4','bitcoin-standard-dual-cards.png',null,
+  'lifestyle-card-pocket-peach.png','dont-sell-borrow-ltv-ui.png',null,
+  'own-use-bitcoin-overlapping-shapes.png',null,'bitcoin-in-motion-mastercard.png',
+  null,'spend-anywhere-dual-cards.png','own-use-bitcoin-single-shape.png',null,
+  null,null,null,'what-if-spend-warm-gradient.png',
+  null,'launching-region-world-map.png','early-access-gold-white.png',null,
+  'lifestyle-card-pocket-dark.png',null,'spend-anywhere-gradient-shape.png'
+];
+
+// ===== CALENDAR GRID =====
+const calGrid = document.getElementById('calGrid');
+const dayHeaders = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const weeks = [
+  [{d:9,m:'Feb'},{d:10,m:'Feb'},{d:11,m:'Feb'},{d:12,m:'Feb'},{d:13,m:'Feb'},{d:14,m:'Feb'},{d:15,m:'Feb'}],
+  [{d:16,m:'Feb'},{d:17,m:'Feb'},{d:18,m:'Feb'},{d:19,m:'Feb'},{d:20,m:'Feb'},{d:21,m:'Feb'},{d:22,m:'Feb'}],
+  [{d:23,m:'Feb'},{d:24,m:'Feb'},{d:25,m:'Feb'},{d:26,m:'Feb'},{d:27,m:'Feb'},{d:28,m:'Feb'},{d:1,m:'Mar'}],
+  [{d:2,m:'Mar'},{d:3,m:'Mar'},{d:4,m:'Mar'},{d:5,m:'Mar'},{d:6,m:'Mar'},{d:7,m:'Mar'},{d:8,m:'Mar'}],
+  [{d:9,m:'Mar'},{d:10,m:'Mar'},{d:11,m:'Mar'},{d:12,m:'Mar'},{d:13,m:'Mar'},{d:14,m:'Mar'},{d:15,m:'Mar'}]
+];
+
+function pillarColor(p){
+  const c={product:'var(--pillar-product)',philosophy:'var(--pillar-philosophy)',education:'var(--pillar-education)',community:'var(--pillar-community)','social-proof':'var(--pillar-social)',hype:'var(--pillar-hype)'};
+  return c[p]||'var(--sage-grey)';
+}
+
+function findPost(m,d){ return posts.find(p=>p.date===m+' '+d); }
+
+function buildCalendar(){
+  let html='';
+  dayHeaders.forEach(d=>{html+='<div class="cal-day-header">'+d+'</div>';});
+  weeks.forEach(week=>{
+    week.forEach(cell=>{
+      const post=findPost(cell.m,cell.d);
+      if(!post){
+        html+='<div class="cal-cell empty"><div class="cal-date" style="color:var(--warm-grey)">'+cell.m+' '+cell.d+'</div></div>';
+      } else {
+        const sc=post.status==='posted'?'posted':post.status==='scheduled'?'scheduled':'future';
+        html+='<div class="cal-cell" data-pillar="'+post.pillar+'" onclick="openModal('+posts.indexOf(post)+')">';
+        const vtMap={T:['Text','cal-vt-text'],G:['Image','cal-vt-image'],V:['Video','cal-vt-video'],P:['Poll','cal-vt-poll'],A:['Article','cal-vt-article']};
+        const vt=vtMap[post.type]||['',''];
+        html+='<div class="cal-date">'+post.date+' <span class="status-dot '+sc+'"></span></div>';
+        html+='<div class="cal-caption">'+post.caption.split('\n')[0]+'</div>';
+        html+='<div class="cal-pillar" style="background:'+pillarColor(post.pillar)+'">'+post.pillarLabel+'</div>';
+        html+='<div><span class="cal-visual-type '+vt[1]+'">'+vt[0]+'</span></div>';
+        html+='</div>';
+      }
+    });
+  });
+  calGrid.innerHTML=html;
+}
+buildCalendar();
+
+// ===== MODAL =====
+function openModal(i){
+  const p=posts[i];
+  document.getElementById('modalDate').textContent=p.date+' ('+p.day+') \u2014 '+({posted:'Posted',scheduled:'Scheduled',future:'Upcoming'}[p.status]);
+  const mp=document.getElementById('modalPillar');
+  mp.textContent=p.pillarLabel;mp.style.background=pillarColor(p.pillar);
+  const img=document.getElementById('modalImg');
+  const imgFile=postImages[i];
+  const vid=document.getElementById('modalVideo');
+  const isVideo=imgFile&&(imgFile.endsWith('.mp4')||imgFile.endsWith('.webm'));
+  if(isVideo){
+    img.classList.remove('loaded');img.src='';
+    vid.src=imgFile;vid.classList.add('loaded');
+  } else if(imgFile){
+    vid.classList.remove('loaded');vid.src='';vid.pause();
+    img.src='Graphics/'+imgFile;img.classList.add('loaded');img.onerror=function(){this.classList.remove('loaded');};
+  } else {
+    img.classList.remove('loaded');img.src='';
+    vid.classList.remove('loaded');vid.src='';vid.pause();
+  }
+  document.getElementById('modalCaption').textContent=p.caption;
+  document.getElementById('modalMeta').innerHTML='<strong>Visual:</strong> '+p.visual+'<br><strong>Type:</strong> '+({T:'Text-only',G:'Graphic',P:'Poll',A:'Article',V:'Video'}[p.type])+'<br><strong>Note:</strong> '+p.note;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow='';
+  const vid=document.getElementById('modalVideo');
+  if(vid){vid.pause();vid.classList.remove('loaded');vid.src='';}
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();document.getElementById('lightbox').classList.remove('show');}
+});
+
+// ===== PILLAR FILTER =====
+function filterPillar(pillar,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.cal-cell[data-pillar]').forEach(c=>{
+    c.classList.toggle('filtered-out',pillar!=='all'&&c.dataset.pillar!==pillar);
+  });
+}
+
+// ===== SECTION COLLAPSE =====
+function toggleSection(header){
+  header.classList.toggle('collapsed');
+  const body=header.nextElementSibling;
+  if(body.classList.contains('collapsed')){
+    body.classList.remove('collapsed');
+    body.style.maxHeight=body.scrollHeight+'px';
+    setTimeout(()=>body.style.maxHeight='none',500);
+  } else {
+    body.style.maxHeight=body.scrollHeight+'px';
+    requestAnimationFrame(()=>{body.style.maxHeight='0';body.classList.add('collapsed');});
+  }
+}
+let allExpanded=false;
+function toggleAll(){
+  allExpanded=!allExpanded;
+  document.getElementById('toggleAllBtn').textContent=allExpanded?'Collapse All':'Expand All';
+  document.querySelectorAll('.section-header').forEach(h=>{
+    const body=h.nextElementSibling;
+    if(allExpanded){h.classList.remove('collapsed');body.classList.remove('collapsed');body.style.maxHeight='none';}
+    else{h.classList.add('collapsed');body.style.maxHeight=body.scrollHeight+'px';requestAnimationFrame(()=>{body.style.maxHeight='0';body.classList.add('collapsed');});}
+  });
+}
+
+// ===== NAV HIGHLIGHTING =====
+const navLinks=document.querySelectorAll('.nav-links a');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){navLinks.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id);});}
+  });
+},{rootMargin:'-80px 0px -60% 0px',threshold:0});
+document.querySelectorAll('section[id]').forEach(s=>observer.observe(s));
+
+// ===== SMOOTH SCROLL =====
+document.querySelectorAll('.nav-links a').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// ===== GRAPHICS THUMBNAILS =====
+document.querySelectorAll('.acc-item').forEach(item=>{
+  const fname=item.querySelector('.fname');
+  if(fname&&fname.textContent.endsWith('.png')){
+    const img=document.createElement('img');
+    img.src='Graphics/'+fname.textContent;
+    img.loading='lazy';
+    img.className='acc-thumb';
+    img.alt=fname.textContent;
+    img.onerror=function(){this.style.display='none';};
+    item.insertBefore(img,item.firstChild);
+    item.onclick=function(){
+      document.getElementById('lightboxImg').src='Graphics/'+fname.textContent;
+      document.getElementById('lightbox').classList.add('show');
+    };
+  }
+});
+
+// ===== SCROLL TO TOP =====
+window.addEventListener('scroll',()=>{
+  document.getElementById('scrollTopBtn').classList.toggle('show',window.scrollY>400);
+});
+
+// ===== COUNTER ANIMATION =====
+function animateCounters(){
+  document.querySelectorAll('.stat .num[data-target]').forEach(el=>{
+    const target=parseInt(el.dataset.target);
+    const duration=1400;
+    const start=performance.now();
+    function update(now){
+      const progress=Math.min((now-start)/duration,1);
+      const eased=1-Math.pow(1-progress,3);
+      el.textContent=Math.round(target*eased);
+      if(progress<1)requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+}
+// Trigger counters after hero animation
+setTimeout(animateCounters,600);
+</script>
+</body>
+</html>
