@@ -638,7 +638,7 @@ const posts = [
 
 const postImages = [
   null,'dont-sell-borrow-spend-cards.png',null,'bitcoin-utility-headline.png',
-  'what-if-spend-gold-highlighted.png','Videos/spend-without-selling-v1.mp4','bitcoin-standard-dual-cards.png',null,
+  'what-if-spend-gold-highlighted.png','spend-without-selling-v1.mp4','bitcoin-standard-dual-cards.png',null,
   'lifestyle-card-pocket-peach.png','dont-sell-borrow-ltv-ui.png',null,
   'own-use-bitcoin-overlapping-shapes.png',null,'bitcoin-in-motion-mastercard.png',
   null,'spend-anywhere-dual-cards.png','own-use-bitcoin-single-shape.png',null,
@@ -705,7 +705,7 @@ function openModal(i){
     vid.src=imgFile;vid.classList.add('loaded');
   } else if(imgFile){
     vid.classList.remove('loaded');vid.src='';vid.pause();
-    img.src='Graphics/'+imgFile;img.classList.add('loaded');img.onerror=function(){this.classList.remove('loaded');};
+    img.src=imgFile;img.classList.add('loaded');img.onerror=function(){this.classList.remove('loaded');};
   } else {
     img.classList.remove('loaded');img.src='';
     vid.classList.remove('loaded');vid.src='';vid.pause();
@@ -781,14 +781,14 @@ document.querySelectorAll('.acc-item').forEach(item=>{
   const fname=item.querySelector('.fname');
   if(fname&&fname.textContent.endsWith('.png')){
     const img=document.createElement('img');
-    img.src='Graphics/'+fname.textContent;
+    img.src=fname.textContent;
     img.loading='lazy';
     img.className='acc-thumb';
     img.alt=fname.textContent;
     img.onerror=function(){this.style.display='none';};
     item.insertBefore(img,item.firstChild);
     item.onclick=function(){
-      document.getElementById('lightboxImg').src='Graphics/'+fname.textContent;
+      document.getElementById('lightboxImg').src=fname.textContent;
       document.getElementById('lightbox').classList.add('show');
     };
   }
